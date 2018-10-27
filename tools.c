@@ -113,8 +113,18 @@ int bst_insert (bst_t *tree, bst_key_t key, data_t new_node){
  */
 data_t bst_remove(bst_t *tree, bst_key_t key){
       bst_node_t* node = bst_access(tree, key);
+
       if (node)
       {
+     // establish a previous pointer
+        bst_node_t* prev = tree->root;
+        while (prev != node)
+        {
+          if (prev->left == node || prev->right == node){ }
+          else if (node->key > prev->key) { prev = prev->right; }
+          else if(node->key < prev->key) { prev = prev->left; }
+        }
+
      // this node will either have 1) no children, 2) one child, 3) two children
      // or 4) two children and grandchildren
        if(!node->left && !node->right)  // no children
@@ -124,7 +134,7 @@ data_t bst_remove(bst_t *tree, bst_key_t key){
          node = NULL;
          return temp;
      } else if(node->left && !node->right){ // only left child
-         // need a pointer to prev node
+
        }
 
 

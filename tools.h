@@ -2,8 +2,15 @@
  * MP5 - tools.h
  * Contains function prototypes for tools.c
  */
-#include "bst.h"
-
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <assert.h>
+ #include <math.h>
+ #include <string.h>
+ #include <ctype.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include "bst.h"
 
  data_t bst_access (bst_t *, bst_key_t);
  bst_t* bst_construct(int tree_policy);

@@ -3,15 +3,6 @@
  * ECE 2230 - Fall 2018
  */
 
- #include <stdlib.h>
- #include <stdio.h>
- #include <assert.h>
- #include <math.h>
- #include <string.h>
- #include <ctype.h>
- #include <time.h>
- #include <unistd.h>
-
  enum balanceoptions {BST, AVL, TWOTHREET};
 
  typedef void *data_t;

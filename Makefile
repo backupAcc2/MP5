@@ -5,10 +5,10 @@ lab5 : tools.o lab5.o
 				gcc -Wall -g tools.o lab5.o -o lab5 -lm
 
 tools.o : tools.c tools.h bst.h
-				gcc -Wall -g -c tools.c
+				gcc -Wall -g -c tools.c -c
 
 lab5.o : lab5.c tools.h bst.h
-				gcc -Wall -g -c lab5.c
+				gcc -Wall -g -c lab5.c -c
 
 
 clean :

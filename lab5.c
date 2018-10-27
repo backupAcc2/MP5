@@ -22,7 +22,7 @@
  *
  */
 
-#include "bst.h"
+#include "tools.h"
 
 /* constants used with Global variables */
 
