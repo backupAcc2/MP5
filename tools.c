@@ -4,6 +4,7 @@
  */
 
  #include "tools.h"
+ int item_count = 0;
 
 /******************************************************************************
  * Function bst_access
@@ -44,8 +45,26 @@ bst_t* bst_construct(int tree_policy){
     return tree_header;
 }
 
-void bst_destruct (bst_t * a){
 
+/*
+ * Function bst_destruct
+ * Frees all nodes in the tree including the header block for the tree
+ */
+void bst_destruct (bst_t * tree){
+    bst_node_t *rover = tree->root;
+    destruct_helper(rover);
+
+}
+
+/*
+ * Helper function to recursively free all nodes in the tree
+ */
+void destruct_helper(bst_node_t *rover){
+
+    if(rover->left) { destruct_helper(rover->left); }
+    if(rover->right) { destruct_helper(rover->right); }
+
+    free(rover);
 }
 
 
@@ -107,6 +126,7 @@ int bst_insert(bst_t *tree, bst_key_t key, data_t new_node){
 
     tree->tree_size++;
     tree->num_recent_key_comparisons = comparisons;
+    item_count++;
     return 1;
 }
 
@@ -122,28 +142,18 @@ data_t bst_remove(bst_t *tree, bst_key_t key){
       bst_node_t *node = (bst_node_t*)bst_access(tree, key);
       if (node)
       {
-     // check to see if this is the root
-        if (node == tree->root){
-           swap = node->left;
-           temp = node->data_ptr;
-           node->left = swap->left;
-           node->data_ptr = swap->data_ptr;
-           node->key = swap->key;
-           free(node);
-           return temp;
+        if (node != tree->root){
+          // find the previous pointer
+          prev = tree->root;
+          while(prev->left != node && prev->right != node)
+          {
+             if (prev->key > node->key)
+                { prev = prev->left; }
+             else if (prev->key < node->key)
+                { prev = prev->right; }
+          }
         }
-
-
-        // find the previous pointer
-        prev = tree->root;
-        while(prev->left != node && prev->right != node)
-        {
-           if (prev->key > node->key)
-              { prev = prev->left; }
-           else if (prev->key < node->key)
-              { prev = prev->right; }
-        }
-
+        
      // this node will either have 1) no children, 2) one child, 3) two children
      // or 4) two children and grandchildren
          if(!node->left && !node->right)  // no children
@@ -153,6 +163,7 @@ data_t bst_remove(bst_t *tree, bst_key_t key){
            else if (prev->key > node->key) {prev->left = NULL; }
            free(node);
            node = NULL;
+           tree->tree_size--;
            return temp;
 
          } else if(node->left && !node->right){ // only left child
@@ -198,6 +209,7 @@ data_t bst_remove(bst_t *tree, bst_key_t key){
         node->data_ptr = swap->data_ptr;
         node->key = swap->key;
         free(swap);
+        tree->tree_size--;
         return temp;
 
    } // ends if (node)
@@ -261,6 +273,7 @@ int bst_int_path_len(bst_t *tree){
  */
 void bst_debug_print_tree(bst_t *tree){
     int distance = 0;
+    item_count = 0;  // item_count will count the number of nodes in the tree
     print_tree(tree->root, distance);
 }
 
@@ -268,7 +281,7 @@ void bst_debug_print_tree(bst_t *tree){
  * Helper function to print out binary tree
  */
 void print_tree(bst_node_t *rover, int distance){
-    if (rover == NULL) { return; }
+    if (rover == NULL) { item_count++; return; }
     int increment = 5;
     distance += increment;
 
@@ -282,6 +295,7 @@ void print_tree(bst_node_t *rover, int distance){
 void bst_debug_validate(bst_t *tree){
     assert(tree);
     assert(tree->root);
+    assert(item_count-1 == tree->tree_size);
   // make sure the keys are all in correct order
   // cant really do this if we can't make this function recursively
 

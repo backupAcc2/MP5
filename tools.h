@@ -29,3 +29,6 @@
 
  // additional helper function for bst_debug_print_tree
  void print_tree(bst_node_t *rover, int distance);
+
+ // additional helper function to help with the destruct
+ void destruct_helper (bst_node_t *rover);
