@@ -56,16 +56,17 @@ void bst_destruct (bst_t * a){
  * Returns 1 if new_node was added to the tree
  * Uses BST search policy
  */
-int bst_insert (bst_t *tree, bst_key_t key, data_t new_node){
+int bst_insert(bst_t *tree, bst_key_t key, data_t new_node){
 
     int comparisons = 1;
 
     // search the tree to see if it already contains key
     bst_node_t* node_to_insert = bst_access(tree, key);
-    if (node_to_insert)
+    if (node_to_insert) // there is already a node with this key
       { node_to_insert->data_ptr = new_node; return 0; }
 
     // add node to tree
+    node_to_insert = (bst_node_t*)malloc(sizeof(bst_node_t));
     // check if no current nodes
     if (tree->tree_size == 0)
     {
@@ -77,28 +78,31 @@ int bst_insert (bst_t *tree, bst_key_t key, data_t new_node){
 
     } else { // find where to insert node
         bst_node_t *tree_rover = tree->root;
-        bst_node_t* prev;
         while(tree_rover)
         {
           comparisons += 2;
-          prev = tree_rover;
-          if (key < tree_rover->key)  { tree_rover = tree_rover->left; }
-          else if (key > tree_rover->key) {tree_rover = tree_rover->right; }
-          else
+          if (key < tree_rover->key && tree_rover->left)
+               { tree_rover = tree_rover->left; }
+          else if (key > tree_rover->key && tree_rover->right)
+               { tree_rover = tree_rover->right; }
+
+          else  // insert in the new node
           {
-            if (prev->key < tree_rover->key)
-              { prev->left = tree_rover;
-                tree_rover->data_ptr = new_node;
-                tree_rover->key = key;
+            if (key < tree_rover->key)
+              { tree_rover->left = node_to_insert;
+                node_to_insert->data_ptr = new_node;
+                node_to_insert->key = key;
               }
-            else if (prev->key > tree_rover->key)
+            else if (key > tree_rover->key)
               {
-                prev->right = tree_rover;
-                tree_rover->data_ptr = new_node;
-                tree_rover->key = key;
+                tree_rover->right = node_to_insert;
+                node_to_insert->data_ptr = new_node;
+                node_to_insert->key = key;
               }
+            tree_rover = NULL; // break out of while loop
           }
-        }
+
+        } // ends while loop
     }
 
     tree->tree_size++;
@@ -112,36 +116,75 @@ int bst_insert (bst_t *tree, bst_key_t key, data_t new_node){
  * Returns a pointer to the data_t memory block or NULL if key was not found
  */
 data_t bst_remove(bst_t *tree, bst_key_t key){
-      bst_node_t* node = bst_access(tree, key);
+      bst_node_t *node = bst_access(tree, key);
+      bst_node_t *swap;
+      data_t temp;
 
       if (node)
       {
-     // establish a previous pointer
-        bst_node_t* prev = tree->root;
-        while (prev != node)
-        {
-          if (prev->left == node || prev->right == node){ }
-          else if (node->key > prev->key) { prev = prev->right; }
-          else if(node->key < prev->key) { prev = prev->left; }
-        }
-
      // this node will either have 1) no children, 2) one child, 3) two children
      // or 4) two children and grandchildren
        if(!node->left && !node->right)  // no children
        {
-         data_t temp = node->data_ptr;
+         temp = node->data_ptr;
          free(node);
          node = NULL;
          return temp;
-     } else if(node->left && !node->right){ // only left child
 
-       }
+       } else if(node->left && !node->right){ // only left child
+        // we are going to swap the nodes data_ptr
+           swap = node->left;
+           temp = node->data_ptr;
+           node->data_ptr = swap->data_ptr;
+           node->key = swap->key;
+           node->left = swap->left;
+           node->right = swap->right;
+           free(swap);
+           return temp;
 
+       } else if (node->right && !node->left){ // only right child
+          swap = node->right;
+          temp = node->data_ptr;
+          node->data_ptr = swap->data_ptr;
+          node->key = swap->key;
+          node->left = swap->left;
+          node->right = swap->right;
+          free(swap);
+          return temp;
 
+       } else if (node->left && node->right){
+           if (node->left->left || node->left->right || node->right->left ||
+           node->right->right){ // two children and grandchildren
+            // is there a grandchild so that left < gc < right ?
+            // if the left child has a right child or the right child has a
+            // left child, then there is
+              if (node->left->right) {
+                  swap = node->left->right;
+                  // not finished here
+              } else if(node->right->left){
+
+              } else { // must be swapped with a child
+
+              }
+          } else {  // two children, no grandchildren
+            // swap with left child
+              swap = node->left;
+              temp = node->data_ptr;
+              node->data_ptr = swap->data_ptr;
+              node->key = swap->key;
+              node->left = swap->left; // should be NULL
+            // do not alter right child
+              free(swap);
+              return temp;
+          }
       }
 
 
-      return NULL;
+
+   } // ends if (node)
+
+
+    return NULL;
 }
 
 /******************************************************************************
@@ -166,12 +209,39 @@ int bst_stats(bst_t *tree){
  * Returns the internal path length of the tree
  */
 int bst_int_path_len(bst_t *tree){
-     int n = bst_size(tree);
-     return log2(n+1);
+
+     int I = 0;
+     bst_node_t *rover = tree->root;
+     find_int_path(rover, &I, 0);
+     return I;
 }
 
+/*
+ * Helper function for bst_int_path_len
+ * Helps recursively calculate the internal path length
+ */
+ void find_int_path(bst_node_t *rover, int *I, int level){
+    if (rover->left){
+      level++;
+      *I += level;
+      find_int_path(rover->left, I, level);
+    }
 
-void bst_debug_print_tree(bst_t *a){
+    level--;
+
+    if (rover->right){
+      level++;
+      *I += level;
+      find_int_path(rover->right, I, level);
+    }
+
+}
+
+/*
+ * Function bst_debug_print_tree
+ * Prints out the values of the binary search tree
+ */
+void bst_debug_print_tree(bst_t *tree){
 
 }
 
