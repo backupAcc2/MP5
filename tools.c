@@ -116,70 +116,89 @@ int bst_insert(bst_t *tree, bst_key_t key, data_t new_node){
  * Returns a pointer to the data_t memory block or NULL if key was not found
  */
 data_t bst_remove(bst_t *tree, bst_key_t key){
-      bst_node_t *node = bst_access(tree, key);
-      bst_node_t *swap;
+      bst_node_t *swap, *prev;
       data_t temp;
 
+      bst_node_t *node = (bst_node_t*)bst_access(tree, key);
       if (node)
       {
-     // this node will either have 1) no children, 2) one child, 3) two children
-     // or 4) two children and grandchildren
-       if(!node->left && !node->right)  // no children
-       {
-         temp = node->data_ptr;
-         free(node);
-         node = NULL;
-         return temp;
-
-       } else if(node->left && !node->right){ // only left child
-        // we are going to swap the nodes data_ptr
+     // check to see if this is the root
+        if (node == tree->root){
            swap = node->left;
            temp = node->data_ptr;
+           node->left = swap->left;
            node->data_ptr = swap->data_ptr;
            node->key = swap->key;
-           node->left = swap->left;
-           node->right = swap->right;
-           free(swap);
+           free(node);
+           return temp;
+        }
+
+
+        // find the previous pointer
+        prev = tree->root;
+        while(prev->left != node && prev->right != node)
+        {
+           if (prev->key > node->key)
+              { prev = prev->left; }
+           else if (prev->key < node->key)
+              { prev = prev->right; }
+        }
+
+     // this node will either have 1) no children, 2) one child, 3) two children
+     // or 4) two children and grandchildren
+         if(!node->left && !node->right)  // no children
+         {
+           temp = node->data_ptr;
+           if (prev->key < node->key) { prev->right = NULL; }
+           else if (prev->key > node->key) {prev->left = NULL; }
+           free(node);
+           node = NULL;
            return temp;
 
-       } else if (node->right && !node->left){ // only right child
-          swap = node->right;
-          temp = node->data_ptr;
-          node->data_ptr = swap->data_ptr;
-          node->key = swap->key;
-          node->left = swap->left;
-          node->right = swap->right;
-          free(swap);
-          return temp;
+         } else if(node->left && !node->right){ // only left child
+          // we are going to swap the nodes' data and remove lower node
+             swap = node->left;
+             node->left = swap->left;
+             node->right = swap->right;
 
-       } else if (node->left && node->right){
-           if (node->left->left || node->left->right || node->right->left ||
-           node->right->right){ // two children and grandchildren
-            // is there a grandchild so that left < gc < right ?
-            // if the left child has a right child or the right child has a
-            // left child, then there is
-              if (node->left->right) {
-                  swap = node->left->right;
-                  // not finished here
-              } else if(node->right->left){
+         } else if (node->right && !node->left){ // only right child
+            swap = node->right;
+            node->left = swap->left;
+            node->right = swap->right;
 
-              } else { // must be swapped with a child
+         } else {
+           swap = node;
+            if (node->left->right) {
+                swap = node->left;
+            // find the greatest grandchild
+                while (swap->right){
+                    prev = swap;
+                    swap = swap->right;
+                  }
+                 prev->right = swap->left;
 
-              }
-          } else {  // two children, no grandchildren
-            // swap with left child
-              swap = node->left;
-              temp = node->data_ptr;
-              node->data_ptr = swap->data_ptr;
-              node->key = swap->key;
-              node->left = swap->left; // should be NULL
-            // do not alter right child
-              free(swap);
-              return temp;
-          }
-      }
+            } else if(node->right->left){
+                swap = node->right;
+              // find the smallest grandchild
+                while(swap->left){
+                    prev = swap;
+                    swap = swap->left;
+                }
+                prev->left = swap->right;
 
+            } else {  // must be swapped with a child
+                swap = node->left;
+                node->left = swap->left; // should be NULL
+              // do not alter right child
+            }
 
+        }
+
+        temp = node->data_ptr;
+        node->data_ptr = swap->data_ptr;
+        node->key = swap->key;
+        free(swap);
+        return temp;
 
    } // ends if (node)
 
@@ -225,9 +244,8 @@ int bst_int_path_len(bst_t *tree){
       level++;
       *I += level;
       find_int_path(rover->left, I, level);
+      level--;
     }
-
-    level--;
 
     if (rover->right){
       level++;
@@ -242,10 +260,29 @@ int bst_int_path_len(bst_t *tree){
  * Prints out the values of the binary search tree
  */
 void bst_debug_print_tree(bst_t *tree){
-
+    int distance = 0;
+    print_tree(tree->root, distance);
 }
 
+/*
+ * Helper function to print out binary tree
+ */
+void print_tree(bst_node_t *rover, int distance){
+    if (rover == NULL) { return; }
+    int increment = 5;
+    distance += increment;
 
-void bst_debug_validate(bst_t *a){
+    print_tree(rover->right, distance);
+    puts("");
+    for (int i = increment; i < distance; i++){  printf(" ");  }
+    printf("%d\n", rover->key);
+    print_tree(rover->left, distance);
+}
+
+void bst_debug_validate(bst_t *tree){
+    assert(tree);
+    assert(tree->root);
+  // make sure the keys are all in correct order
+  // cant really do this if we can't make this function recursively
 
 }

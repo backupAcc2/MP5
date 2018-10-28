@@ -26,3 +26,6 @@
 
  // additonal helper function for bst_int_path_len
  void find_int_path(bst_node_t *rover, int *I, int level);
+
+ // additional helper function for bst_debug_print_tree
+ void print_tree(bst_node_t *rover, int distance);

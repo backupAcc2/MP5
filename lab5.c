@@ -125,9 +125,9 @@ int main(int argc, char **argv)
 *****************************************************************************/
     if (UnitNumber == 7)
     {
-      const int ins[] = {10, 8, 6, 12, 11, 13};
-      const int del[0];
-      unitDriver(ins, sizeof ins/sizeof(int), del, 0);
+      const int ins[] = {10, 8, 6, 16, 11, 13, 7, 12, 14, 7, 17, 20};
+      const int del[] = {10, 12, 7, 16, 14};
+      unitDriver(ins, sizeof ins/sizeof(int), del, sizeof del/sizeof(int));
 
     }
 
@@ -186,10 +186,6 @@ void unitDriver(const int ins_keys[], const int num_inserts,
             printf("\n\nFAILED to find the key in the tree ######\n");
         free(dp);
     }
-// MY CODE DO NOT FORGET****************************************************
-      int I = bst_int_path_len(del_tree);
-      printf("Internal Path Length: %d\n", I);
-
 
     /* remove and free all items from tree */
     bst_destruct(del_tree);
