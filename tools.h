@@ -32,3 +32,7 @@
 
  // additional helper function to help with the destruct
  void destruct_helper (bst_node_t *rover);
+
+// helper function for bst_debug_validate to count the number of null pointers
+// at the end of each child
+ void bst_count_leaves(bst_node_t *node, int *count);

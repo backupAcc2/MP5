@@ -125,8 +125,13 @@ int main(int argc, char **argv)
 *****************************************************************************/
     if (UnitNumber == 7)
     {
-      const int ins[] = {10, 5, 3, 6, 13};
-      const int del[] = {10};
+
+      // Three double rotations after deletion
+      const int ins[] = {2, 4, 6, 1, 2, 2, 56, 2, 12};
+      const int del[] = {5, 4, 6, 1};
+
+
+
       unitDriver(ins, sizeof ins/sizeof(int), del, sizeof del/sizeof(int));
 
     }
@@ -187,6 +192,7 @@ void unitDriver(const int ins_keys[], const int num_inserts,
         free(dp);
     }
     /* remove and free all items from tree */
+    bst_debug_validate(del_tree);
     bst_destruct(del_tree);
 }
 
@@ -342,6 +348,7 @@ void equilibriumDriver(void)
             //printf("  rotations %d\n", bst_rotations(test_tree));
         } else {
             dp = bst_remove(test_tree, key);
+
             if (dp == NULL) {
                 if (Verbose) printf(" not found\n");
                 unsuc_search += bst_stats(test_tree);
